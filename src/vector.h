@@ -16,6 +16,10 @@
 namespace vnl2
 {
 
+// Forward declaration of the matrix class for "friendliness"
+template<typename T>
+class matrix;
+
 /** 
  * \class vector
  * \brief A representation of numerical vectors
@@ -30,6 +34,10 @@ template<typename T>
 class vector
 {
 public:
+
+  // Allow matrix acces to the vector's data members for optimized operations
+  friend class matrix<T>;
+
   //----------------------------------------
   // Constructors
   //----------------------------------------
@@ -94,12 +102,16 @@ public:
   T& operator[](size_t i);
 
   /** Scalar multiplication */
-  template<typename T2> vector<T>  operator  *(const T2& alpha);  
+  template<typename T2> vector<T>  operator  *(const T2& alpha) const;  
   template<typename T2> vector<T>& operator *=(const T2& alpha);  
 
   /** Scalar division */
-  template<typename T2> vector<T>  operator  /(const T2& alpha);  
+  template<typename T2> vector<T>  operator  /(const T2& alpha) const;  
   template<typename T2> vector<T>& operator /=(const T2& alpha);  
+
+  /** Vector addition */
+  vector<T>  operator  +(const vector<T>& x) const;  
+  vector<T>& operator +=(const vector<T>& x);  
 
 private:
   size_t m_len;

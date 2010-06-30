@@ -113,6 +113,20 @@ vector<T>
 }  
 
 
+/** Destructor */
+template<typename T>
+vector<T>
+::~vector(void)
+{
+  if( !this->m_data )
+  {
+    delete[] this->m_data;
+    this->m_data = NULL;
+    this->m_len = 0;
+  }
+}
+
+
 /** Assignment operator */
 template<typename T>
 const vector<T>& 
@@ -186,6 +200,7 @@ vector<T>
   return this->m_data[i];
 }
 
+
 //------------------------------------------------------------
 // Scalar Multiplication
 //------------------------------------------------------------
@@ -194,7 +209,7 @@ template<>
 template<>
 vector<float> 
 vector<float>
-::operator*(const float& alpha)
+::operator  *(const float& alpha) const
 {
   vector<float> r(*this);
   const int incx = 1;
@@ -207,7 +222,7 @@ template<>
 template<>
 vector<double> 
 vector<double>
-::operator*(const double& alpha)
+::operator  *(const double& alpha) const
 {
   vector<double> r(*this);
   const int incx = 1;
@@ -220,7 +235,7 @@ template<>
 template<>
 vector<std::complex<float> > 
 vector<std::complex<float> >
-::operator*(const float& alpha)
+::operator  *(const float& alpha) const
 {
   vector<std::complex<float> > r(*this);
   const int incx = 1;
@@ -233,7 +248,7 @@ template<>
 template<>
 vector<std::complex<float> > 
 vector<std::complex<float> >
-::operator*(const std::complex<float>& alpha)
+::operator  *(const std::complex<float>& alpha) const
 {
   vector<std::complex<float> > r(*this);
   const int incx = 1;
@@ -246,7 +261,7 @@ template<>
 template<>
 vector<std::complex<double> > 
 vector<std::complex<double> >
-::operator*(const double& alpha)
+::operator  *(const double& alpha) const
 {
   vector<std::complex<double> > r(*this);
   const int incx = 1;
@@ -259,7 +274,7 @@ template<>
 template<>
 vector<std::complex<double> > 
 vector<std::complex<double> >
-::operator*(const std::complex<double>& alpha)
+::operator  *(const std::complex<double>& alpha) const
 {
   vector<std::complex<double> > r(*this);
   const int incx = 1;
@@ -272,7 +287,7 @@ template<>
 template<>
 vector<float>& 
 vector<float>
-::operator*=(const float& alpha)
+::operator *=(const float& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -285,7 +300,7 @@ template<>
 template<>
 vector<double>& 
 vector<double>
-::operator*=(const double& alpha)
+::operator *=(const double& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -298,7 +313,7 @@ template<>
 template<>
 vector<std::complex<float> >& 
 vector<std::complex<float> >
-::operator*=(const float& alpha)
+::operator *=(const float& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -311,7 +326,7 @@ template<>
 template<>
 vector<std::complex<float> >& 
 vector<std::complex<float> >
-::operator*=(const std::complex<float>& alpha)
+::operator *=(const std::complex<float>& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -324,7 +339,7 @@ template<>
 template<>
 vector<std::complex<double> >& 
 vector<std::complex<double> >
-::operator*=(const std::complex<double>& alpha)
+::operator *=(const std::complex<double>& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -337,7 +352,7 @@ template<>
 template<>
 vector<std::complex<double> >& 
 vector<std::complex<double> >
-::operator*=(const double& alpha)
+::operator *=(const double& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -355,7 +370,7 @@ template<>
 template<>
 vector<float> 
 vector<float>
-::operator/(const float& alpha)
+::operator  /(const float& alpha) const
 {
   vector<float> r(*this);
   const int incx = 1;
@@ -369,7 +384,7 @@ template<>
 template<>
 vector<double> 
 vector<double>
-::operator/(const double& alpha)
+::operator  /(const double& alpha) const
 {
   vector<double> r(*this);
   const int incx = 1;
@@ -383,7 +398,7 @@ template<>
 template<>
 vector<std::complex<float> > 
 vector<std::complex<float> >
-::operator/(const float& alpha)
+::operator  /(const float& alpha) const
 {
   vector<std::complex<float> > r(*this);
   const int incx = 1;
@@ -397,7 +412,7 @@ template<>
 template<>
 vector<std::complex<float> > 
 vector<std::complex<float> >
-::operator/(const std::complex<float>& alpha)
+::operator  /(const std::complex<float>& alpha) const
 {
   vector<std::complex<float> > r(*this);
   const int incx = 1;
@@ -411,7 +426,7 @@ template<>
 template<>
 vector<std::complex<double> > 
 vector<std::complex<double> >
-::operator/(const double& alpha)
+::operator  /(const double& alpha) const
 {
   vector<std::complex<double> > r(*this);
   const int incx = 1;
@@ -425,7 +440,7 @@ template<>
 template<>
 vector<std::complex<double> > 
 vector<std::complex<double> >
-::operator/(const std::complex<double>& alpha)
+::operator  /(const std::complex<double>& alpha) const
 {
   vector<std::complex<double> > r(*this);
   const int incx = 1;
@@ -439,7 +454,7 @@ template<>
 template<>
 vector<float>& 
 vector<float>
-::operator/=(const float& alpha)
+::operator /=(const float& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -453,7 +468,7 @@ template<>
 template<>
 vector<double>& 
 vector<double>
-::operator/=(const double& alpha)
+::operator /=(const double& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -467,7 +482,7 @@ template<>
 template<>
 vector<std::complex<float> >& 
 vector<std::complex<float> >
-::operator/=(const float& alpha)
+::operator /=(const float& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -481,7 +496,7 @@ template<>
 template<>
 vector<std::complex<float> >& 
 vector<std::complex<float> >
-::operator/=(const std::complex<float>& alpha)
+::operator /=(const std::complex<float>& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -495,7 +510,7 @@ template<>
 template<>
 vector<std::complex<double> >& 
 vector<std::complex<double> >
-::operator/=(const double& alpha)
+::operator /=(const double& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -509,13 +524,31 @@ template<>
 template<>
 vector<std::complex<double> >& 
 vector<std::complex<double> >
-::operator/=(const std::complex<double>& alpha)
+::operator /=(const std::complex<double>& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
   const std::complex<double> alpha_inv = 1.0/alpha;
   zscal_(&n, &alpha_inv, this->m_data, &incx);
   return *this;
+}
+
+
+//------------------------------------------------------------
+//  Vector Addition
+//------------------------------------------------------------
+
+
+template<>
+vector<float> 
+vector<float>
+::operator  +(const vector<float>& x) const
+{
+  vector<float> y(*this);
+  const int inc = 1;
+  const int n = static_cast<int>(r.m_len);
+  const float alpha = 1.0f;
+  sscal_(&n, &alpha, r.m_data, &incx);
 }
 
 
