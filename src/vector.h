@@ -93,8 +93,12 @@ public:
   T& operator[](size_t i);
 
   /** Scalar multiplication */
-  vector<T> operator*(T alpha);  
-  vector<T>& operator*=(T alpha);  
+  template<typename T2> vector<T>  operator  *(const T2& alpha);  
+  template<typename T2> vector<T>& operator *=(const T2& alpha);  
+
+  /** Scalar division */
+  template<typename T2> vector<T>  operator  /(const T2& alpha);  
+  template<typename T2> vector<T>& operator /=(const T2& alpha);  
 
 private:
   size_t m_len;

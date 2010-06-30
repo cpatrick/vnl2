@@ -191,9 +191,10 @@ vector<T>
 //------------------------------------------------------------
 
 template<>
+template<>
 vector<float> 
 vector<float>
-::operator*(float alpha)
+::operator*(const float& alpha)
 {
   vector<float> r(*this);
   const int incx = 1;
@@ -203,9 +204,10 @@ vector<float>
 
 
 template<>
+template<>
 vector<double> 
 vector<double>
-::operator*(double alpha)
+::operator*(const double& alpha)
 {
   vector<double> r(*this);
   const int incx = 1;
@@ -215,9 +217,23 @@ vector<double>
 
 
 template<>
+template<>
 vector<std::complex<float> > 
 vector<std::complex<float> >
-::operator*(std::complex<float> alpha)
+::operator*(const float& alpha)
+{
+  vector<std::complex<float> > r(*this);
+  const int incx = 1;
+  const int n = static_cast<int>(r.m_len);
+  csscal_(&n, &alpha, r.m_data, &incx);
+}
+
+
+template<>
+template<>
+vector<std::complex<float> > 
+vector<std::complex<float> >
+::operator*(const std::complex<float>& alpha)
 {
   vector<std::complex<float> > r(*this);
   const int incx = 1;
@@ -227,9 +243,23 @@ vector<std::complex<float> >
 
 
 template<>
+template<>
 vector<std::complex<double> > 
 vector<std::complex<double> >
-::operator*(std::complex<double> alpha)
+::operator*(const double& alpha)
+{
+  vector<std::complex<double> > r(*this);
+  const int incx = 1;
+  const int n = static_cast<int>(r.m_len);
+  zdscal_(&n, &alpha, r.m_data, &incx);
+}
+
+
+template<>
+template<>
+vector<std::complex<double> > 
+vector<std::complex<double> >
+::operator*(const std::complex<double>& alpha)
 {
   vector<std::complex<double> > r(*this);
   const int incx = 1;
@@ -239,9 +269,10 @@ vector<std::complex<double> >
 
 
 template<>
+template<>
 vector<float>& 
 vector<float>
-::operator*=(float alpha)
+::operator*=(const float& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -251,9 +282,10 @@ vector<float>
 
 
 template<>
+template<>
 vector<double>& 
 vector<double>
-::operator*=(double alpha)
+::operator*=(const double& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -263,9 +295,23 @@ vector<double>
 
 
 template<>
+template<>
 vector<std::complex<float> >& 
 vector<std::complex<float> >
-::operator*=(std::complex<float> alpha)
+::operator*=(const float& alpha)
+{
+  const int incx = 1;
+  const int n = static_cast<int>(this->m_len);
+  csscal_(&n, &alpha, this->m_data, &incx);
+  return *this;
+}
+
+
+template<>
+template<>
+vector<std::complex<float> >& 
+vector<std::complex<float> >
+::operator*=(const std::complex<float>& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -275,13 +321,200 @@ vector<std::complex<float> >
 
 
 template<>
+template<>
 vector<std::complex<double> >& 
 vector<std::complex<double> >
-::operator*=(std::complex<double> alpha)
+::operator*=(const std::complex<double>& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
   zscal_(&n, &alpha, this->m_data, &incx);
+  return *this;
+}
+
+
+template<>
+template<>
+vector<std::complex<double> >& 
+vector<std::complex<double> >
+::operator*=(const double& alpha)
+{
+  const int incx = 1;
+  const int n = static_cast<int>(this->m_len);
+  zdscal_(&n, &alpha, this->m_data, &incx);
+  return *this;
+}
+
+
+//------------------------------------------------------------
+// Scalar Division
+//------------------------------------------------------------
+
+
+template<>
+template<>
+vector<float> 
+vector<float>
+::operator/(const float& alpha)
+{
+  vector<float> r(*this);
+  const int incx = 1;
+  const int n = static_cast<int>(r.m_len);
+  float alpha_inv = 1.0f/alpha;
+  sscal_(&n, &alpha_inv, r.m_data, &incx);
+}
+
+
+template<>
+template<>
+vector<double> 
+vector<double>
+::operator/(const double& alpha)
+{
+  vector<double> r(*this);
+  const int incx = 1;
+  const int n = static_cast<int>(r.m_len);
+  double alpha_inv = 1.0/alpha;
+  dscal_(&n, &alpha_inv, r.m_data, &incx);
+}
+
+
+template<>
+template<>
+vector<std::complex<float> > 
+vector<std::complex<float> >
+::operator/(const float& alpha)
+{
+  vector<std::complex<float> > r(*this);
+  const int incx = 1;
+  const int n = static_cast<int>(r.m_len);
+  const float alpha_inv = 1.0f/alpha;
+  csscal_(&n, &alpha_inv, r.m_data, &incx);
+}
+
+
+template<>
+template<>
+vector<std::complex<float> > 
+vector<std::complex<float> >
+::operator/(const std::complex<float>& alpha)
+{
+  vector<std::complex<float> > r(*this);
+  const int incx = 1;
+  const int n = static_cast<int>(r.m_len);
+  const std::complex<float> alpha_inv = 1.0f/alpha;
+  cscal_(&n, &alpha_inv, r.m_data, &incx);
+}
+
+
+template<>
+template<>
+vector<std::complex<double> > 
+vector<std::complex<double> >
+::operator/(const double& alpha)
+{
+  vector<std::complex<double> > r(*this);
+  const int incx = 1;
+  const int n = static_cast<int>(r.m_len);
+  const double alpha_inv = 1.0/alpha;
+  zdscal_(&n, &alpha_inv, r.m_data, &incx);
+}
+
+
+template<>
+template<>
+vector<std::complex<double> > 
+vector<std::complex<double> >
+::operator/(const std::complex<double>& alpha)
+{
+  vector<std::complex<double> > r(*this);
+  const int incx = 1;
+  const int n = static_cast<int>(r.m_len);
+  const std::complex<double> alpha_inv = 1.0/alpha;
+  zscal_(&n, &alpha_inv, r.m_data, &incx);
+}
+
+
+template<>
+template<>
+vector<float>& 
+vector<float>
+::operator/=(const float& alpha)
+{
+  const int incx = 1;
+  const int n = static_cast<int>(this->m_len);
+  const float alpha_inv = 1.0f/alpha;
+  sscal_(&n, &alpha_inv, this->m_data, &incx);
+  return *this;
+}
+
+
+template<>
+template<>
+vector<double>& 
+vector<double>
+::operator/=(const double& alpha)
+{
+  const int incx = 1;
+  const int n = static_cast<int>(this->m_len);
+  const double alpha_inv = 1.0/alpha;
+  dscal_(&n, &alpha_inv, this->m_data, &incx);
+  return *this;
+}
+
+
+template<>
+template<>
+vector<std::complex<float> >& 
+vector<std::complex<float> >
+::operator/=(const float& alpha)
+{
+  const int incx = 1;
+  const int n = static_cast<int>(this->m_len);
+  const float alpha_inv = 1.0f/alpha;
+  csscal_(&n, &alpha_inv, this->m_data, &incx);
+  return *this;
+}
+
+
+template<>
+template<>
+vector<std::complex<float> >& 
+vector<std::complex<float> >
+::operator/=(const std::complex<float>& alpha)
+{
+  const int incx = 1;
+  const int n = static_cast<int>(this->m_len);
+  const std::complex<float> alpha_inv = 1.0f/alpha;
+  cscal_(&n, &alpha_inv, this->m_data, &incx);
+  return *this;
+}
+
+
+template<>
+template<>
+vector<std::complex<double> >& 
+vector<std::complex<double> >
+::operator/=(const double& alpha)
+{
+  const int incx = 1;
+  const int n = static_cast<int>(this->m_len);
+  const double alpha_inv = 1.0/alpha;
+  zdscal_(&n, &alpha_inv, this->m_data, &incx);
+  return *this;
+}
+
+
+template<>
+template<>
+vector<std::complex<double> >& 
+vector<std::complex<double> >
+::operator/=(const std::complex<double>& alpha)
+{
+  const int incx = 1;
+  const int n = static_cast<int>(this->m_len);
+  const std::complex<double> alpha_inv = 1.0/alpha;
+  zscal_(&n, &alpha_inv, this->m_data, &incx);
   return *this;
 }
 
