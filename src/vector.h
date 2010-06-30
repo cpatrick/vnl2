@@ -21,9 +21,10 @@ namespace vnl2
  * \brief A representation of numerical vectors
  *
  * For small sized vectors known at compile time (2, 3, and 4 elements) use
- * vector_fixed
+ * vector_fixed.  The underlying operators areto be performed by the
+ * Level 1 BLAS routines.
  *
- * \tparam T The underlying vector type (double, float, compelx, etc.)
+ * \tparam T The underlying vector type (double, float, complex, etc.)
  */
 template<typename T>
 class vector
