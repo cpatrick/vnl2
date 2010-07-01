@@ -24,9 +24,11 @@ class matrix;
  * \class vector
  * \brief A representation of numerical vectors
  *
- * For small sized vectors known at compile time (2, 3, and 4 elements) use
- * vector_fixed.  The underlying operators areto be performed by the
- * Level 1 BLAS routines.
+ * The vector class is a fundabental data type for numerical methods.  In
+ * this implementation, the underlying operators are to be performed by the
+ * Level 1 BLAS routines.  There is also a shallow caopy mechanism which
+ * allows data from other classes and sources to be thinly wrapped without
+ * the need to copy unnecessarily.
  *
  * \tparam T The underlying vector type (double, float, complex, etc.)
  */
@@ -48,34 +50,46 @@ public:
   vector(size_t len = 0);
   
   /** Create a vector by filling every element with a specified value 
-   * \param len   The number of elements
-   * \param value Initialize all elements of the vector to value
+   * \param len         The number of elements
+   * \param value       Initialize all elements of the vector to value
    */
   vector(size_t len, const T value);
   
   /** Copy constructor from a fixed array 
-   * \param v   The source array to copy from
+   * \param v           The source array to copy from
+   * \param shallowCopy If true, then only the underlying memory pointer
+   *                    is copied, not the actual vector elements
    */
-  vector(const T v[]);
+  vector(const T v[], bool shallowCopy = false);
   
   /** Copy constructor from a dynamic array 
    * \param len The number of elements
-   * \param v   The source array to copy from.  An assumption is made that
-   *            v contains at least len elements.
+   * \param v           The source array to copy from.  An assumption is 
+   *                    made that contains at least len elements.
+   * \param shallowCopy If true, then only the underlying memory pointer
+   *                    is copied, not the actual vector elements
    */
-  vector(size_t len, const T* v);
+  vector(size_t len, const T* v, bool shallowCopy = false);
   
   /** Copy constructor from an vnl2::vector 
-   * \param v   The source array to copy from
+   * \param v           The source array to copy from
+   * \param shallowCopy If true, then only the underlying memory pointer
+   *                    is copied, not the actual vector elements
    */
-  vector(const vector<T>& v);
+  vector(const vector<T>& v, bool shallowCopy = false);
 
   /** Copy constructor from an std::vector 
-   * \param v   The source array to copy from
+   * \param v           The source array to copy from
+   * \param shallowCopy If true, then only the underlying memory pointer
+   *                    is copied, not the actual vector elements
    */
-  vector(const std::vector<T>& v);  
+  vector(const std::vector<T>& v, bool shallowCopy = false);  
 
-  /** Destructor */
+  /** Destructor 
+   *  The shallow copy mechanism will only free memory if allocated by the
+   *  vector class.  This allows various vector data sources to be thinly
+   *  wrapped without copying the vector elements.
+   */
   ~vector(void);
 
   //----------------------------------------
@@ -114,6 +128,7 @@ public:
   vector<T>& operator +=(const vector<T>& x);  
 
 private:
+  bool m_shallow;
   size_t m_len;
   T* m_data;
 };

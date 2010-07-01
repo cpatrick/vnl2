@@ -12,8 +12,9 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "vector.h"
-#include "blas.h"
+#include "vnl2_vector.h"
+#include "vnl2_types.h"
+#include "vnl2_blas.h"
 
 namespace vnl2
 {
@@ -24,12 +25,12 @@ namespace vnl2
 template<typename T>
 vector<T>
 ::vector(size_t len)
-: m_len(len), m_data(NULL)
+: m_shallow(false), m_len(len), m_data(NULL)
 {
   if( this->m_len > 0 )
   {
-    m_data = new T[this->m_len];
-    std::memset(m_data, 0, sizeof(T)*this->m_len);
+    this->m_data = new T[this->m_len];
+    std::memset(this->m_data, 0, sizeof(T)*this->m_len);
   }
 }
 
@@ -41,84 +42,121 @@ vector<T>
 template<typename T>
 vector<T>
 ::vector(size_t len, const T value)
-: m_len(len), m_data(NULL)
+: m_shallow(false), m_len(len), m_data(NULL)
 {
   if( this->m_len > 0 )
   {
-    m_data = new T[this->m_len];
-    // FIX ME
-    std::memset(m_data, 0, sizeof(T)*this->m_len);
+    this->m_data = new T[this->m_len];
+    for( size_t i = 0; i < this->m_len; ++i )
+    {
+      this->m_data[i] = value;
+    }
   }
 }
  
  
 /** Copy constructor from a fixed array 
- * \param v   The source array to copy from
+ * \param v           The source array to copy from
+ * \param shallowCopy If true, then only the underlying memory pointer
+ *                    is copied, not the actual vector elements
  */
 template<typename T>
 vector<T>
-::vector(const T v[])
-: m_len(sizeof(v)/sizeof(T)), m_data(NULL)
+::vector(const T v[], bool shallowCopy )
+: m_shallow(shallowCopy), m_len(sizeof(v)/sizeof(T)), m_data(NULL)
 {
-  if( this->m_len > 0 )
+  if( this->m_shallow )
   {
-    m_data = new T[this->m_len];
-    std::memcpy(m_data, v, sizeof(v));
+    //this->m_data = const_cast<T*>(v);
+  }
+  else if( this->m_len > 0 )
+  {
+    this->m_data = new T[this->m_len];
+    std::memcpy(this->m_data, v, sizeof(v));
   }
 }
 
   
 /** Copy constructor from a dynamic array 
- * \param len The number of elements
- * \param v   The source array to copy from
+ * \param len         The number of elements
+ * \param v           The source array to copy from
+ * \param shallowCopy If true, then only the underlying memory pointer
+ *                    is copied, not the actual vector elements
  */
 template<typename T>
 vector<T>
-::vector(size_t len, const T* v)
-: m_len(len), m_data(NULL)
+::vector(size_t len, const T* v, bool shallowCopy)
+: m_shallow(shallowCopy), m_len(len), m_data(NULL)
 {
-  if( this->m_len > 0 )
+  if( this->m_shallow )
+  {
+    this->m_data = const_cast<T*>(v);
+  }
+  else if( this->m_len > 0 )
   {
     m_data = new T[this->m_len];
-    std::memcpy(m_data, v, sizeof(T)*this->m_len);
+    std::memcpy(this->m_data, v, sizeof(T)*this->m_len);
   }
 }
 
   
 /** Copy constructor from an vnl2::vector 
- * \param v   The source array to copy from
+ * \param v           The source array to copy from
+ * \param shallowCopy If true, then only the underlying memory pointer
+ *                    is copied, not the actual vector elements
  */
 template<typename T>
 vector<T>
-::vector(const vector<T>& v)
-: m_len(0), m_data(NULL)
+::vector(const vector<T>& v, bool shallowCopy)
+: m_shallow(shallowCopy), m_len(v.m_len), m_data(NULL)
 {
-  *this = v;
+  if( this == &v )
+  {
+    return;
+  }
+  if( this->m_shallow )
+  {
+    this->m_data = v.m_data;
+  }
+  else if( this->m_len > 0 )
+  {
+    std::memcpy(this->m_data, v.m_data, sizeof(T)*this->m_len);
+  }
 }  
 
 
 /** Copy constructor from an std::vector 
- * \param v   The source array to copy from
+ * \param v           The source array to copy from
+ * \param shallowCopy If true, then only the underlying memory pointer
+ *                    is copied, not the actual vector elements
  */
 template<typename T>
 vector<T>
-::vector(const std::vector<T>& v) 
-: m_len(v.size()), m_data(NULL)
+::vector(const std::vector<T>& v, bool shallowCopy) 
+: m_shallow(shallowCopy), m_len(v.size()), m_data(NULL)
 {
-  if( this->m_len > 0 )
+  if( this->m_shallow )
   {
-    m_data = new T[this->m_len];
+    this->m_data = const_cast<T*>(&(*(v.begin())));
+  }
+  else if( this->m_len > 0 )
+  {
+    this->m_data = new T[this->m_len];
     std::memcpy(m_data, &(*(v.begin())), sizeof(T)*this->m_len);
   }
 }  
 
 
-/** Destructor */
+/** Destructor 
+ *  The shallow copy mechanism will only free memory if allocated by the
+ *  vector class.  This allows various vector data sources to be thinly
+ *  wrapped without copying the vector elements.
+ */
 template<typename T>
 vector<T>
 ::~vector(void)
 {
-  if( !this->m_data )
+  if( !this->m_shallow && this->m_data )
   {
     delete[] this->m_data;
     this->m_data = NULL;
@@ -233,11 +271,11 @@ vector<double>
 
 template<>
 template<>
-vector<std::complex<float> > 
-vector<std::complex<float> >
+vector<complex_float> 
+vector<complex_float>
 ::operator  *(const float& alpha) const
 {
-  vector<std::complex<float> > r(*this);
+  vector<complex_float> r(*this);
   const int incx = 1;
   const int n = static_cast<int>(r.m_len);
   csscal_(&n, &alpha, r.m_data, &incx);
@@ -246,11 +284,11 @@ vector<std::complex<float> >
 
 template<>
 template<>
-vector<std::complex<float> > 
-vector<std::complex<float> >
-::operator  *(const std::complex<float>& alpha) const
+vector<complex_float> 
+vector<complex_float>
+::operator  *(const complex_float& alpha) const
 {
-  vector<std::complex<float> > r(*this);
+  vector<complex_float> r(*this);
   const int incx = 1;
   const int n = static_cast<int>(r.m_len);
   cscal_(&n, &alpha, r.m_data, &incx);
@@ -259,11 +297,11 @@ vector<std::complex<float> >
 
 template<>
 template<>
-vector<std::complex<double> > 
-vector<std::complex<double> >
+vector<complex_double> 
+vector<complex_double>
 ::operator  *(const double& alpha) const
 {
-  vector<std::complex<double> > r(*this);
+  vector<complex_double> r(*this);
   const int incx = 1;
   const int n = static_cast<int>(r.m_len);
   zdscal_(&n, &alpha, r.m_data, &incx);
@@ -272,11 +310,11 @@ vector<std::complex<double> >
 
 template<>
 template<>
-vector<std::complex<double> > 
-vector<std::complex<double> >
-::operator  *(const std::complex<double>& alpha) const
+vector<complex_double> 
+vector<complex_double>
+::operator  *(const complex_double& alpha) const
 {
-  vector<std::complex<double> > r(*this);
+  vector<complex_double> r(*this);
   const int incx = 1;
   const int n = static_cast<int>(r.m_len);
   zscal_(&n, &alpha, r.m_data, &incx);
@@ -311,8 +349,8 @@ vector<double>
 
 template<>
 template<>
-vector<std::complex<float> >& 
-vector<std::complex<float> >
+vector<complex_float>& 
+vector<complex_float>
 ::operator *=(const float& alpha)
 {
   const int incx = 1;
@@ -324,9 +362,9 @@ vector<std::complex<float> >
 
 template<>
 template<>
-vector<std::complex<float> >& 
-vector<std::complex<float> >
-::operator *=(const std::complex<float>& alpha)
+vector<complex_float>& 
+vector<complex_float>
+::operator *=(const complex_float& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -337,9 +375,9 @@ vector<std::complex<float> >
 
 template<>
 template<>
-vector<std::complex<double> >& 
-vector<std::complex<double> >
-::operator *=(const std::complex<double>& alpha)
+vector<complex_double>& 
+vector<complex_double>
+::operator *=(const complex_double& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
@@ -350,8 +388,8 @@ vector<std::complex<double> >
 
 template<>
 template<>
-vector<std::complex<double> >& 
-vector<std::complex<double> >
+vector<complex_double>& 
+vector<complex_double>
 ::operator *=(const double& alpha)
 {
   const int incx = 1;
@@ -396,11 +434,11 @@ vector<double>
 
 template<>
 template<>
-vector<std::complex<float> > 
-vector<std::complex<float> >
+vector<complex_float> 
+vector<complex_float>
 ::operator  /(const float& alpha) const
 {
-  vector<std::complex<float> > r(*this);
+  vector<complex_float> r(*this);
   const int incx = 1;
   const int n = static_cast<int>(r.m_len);
   const float alpha_inv = 1.0f/alpha;
@@ -410,25 +448,25 @@ vector<std::complex<float> >
 
 template<>
 template<>
-vector<std::complex<float> > 
-vector<std::complex<float> >
-::operator  /(const std::complex<float>& alpha) const
+vector<complex_float> 
+vector<complex_float>
+::operator  /(const complex_float& alpha) const
 {
-  vector<std::complex<float> > r(*this);
+  vector<complex_float> r(*this);
   const int incx = 1;
   const int n = static_cast<int>(r.m_len);
-  const std::complex<float> alpha_inv = 1.0f/alpha;
+  const complex_float alpha_inv = 1.0f/alpha;
   cscal_(&n, &alpha_inv, r.m_data, &incx);
 }
 
 
 template<>
 template<>
-vector<std::complex<double> > 
-vector<std::complex<double> >
+vector<complex_double> 
+vector<complex_double>
 ::operator  /(const double& alpha) const
 {
-  vector<std::complex<double> > r(*this);
+  vector<complex_double> r(*this);
   const int incx = 1;
   const int n = static_cast<int>(r.m_len);
   const double alpha_inv = 1.0/alpha;
@@ -438,14 +476,14 @@ vector<std::complex<double> >
 
 template<>
 template<>
-vector<std::complex<double> > 
-vector<std::complex<double> >
-::operator  /(const std::complex<double>& alpha) const
+vector<complex_double> 
+vector<complex_double>
+::operator  /(const complex_double& alpha) const
 {
-  vector<std::complex<double> > r(*this);
+  vector<complex_double> r(*this);
   const int incx = 1;
   const int n = static_cast<int>(r.m_len);
-  const std::complex<double> alpha_inv = 1.0/alpha;
+  const complex_double alpha_inv = 1.0/alpha;
   zscal_(&n, &alpha_inv, r.m_data, &incx);
 }
 
@@ -480,8 +518,8 @@ vector<double>
 
 template<>
 template<>
-vector<std::complex<float> >& 
-vector<std::complex<float> >
+vector<complex_float>& 
+vector<complex_float>
 ::operator /=(const float& alpha)
 {
   const int incx = 1;
@@ -494,13 +532,13 @@ vector<std::complex<float> >
 
 template<>
 template<>
-vector<std::complex<float> >& 
-vector<std::complex<float> >
-::operator /=(const std::complex<float>& alpha)
+vector<complex_float>& 
+vector<complex_float>
+::operator /=(const complex_float& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
-  const std::complex<float> alpha_inv = 1.0f/alpha;
+  const complex_float alpha_inv = 1.0f/alpha;
   cscal_(&n, &alpha_inv, this->m_data, &incx);
   return *this;
 }
@@ -508,8 +546,8 @@ vector<std::complex<float> >
 
 template<>
 template<>
-vector<std::complex<double> >& 
-vector<std::complex<double> >
+vector<complex_double>& 
+vector<complex_double>
 ::operator /=(const double& alpha)
 {
   const int incx = 1;
@@ -522,13 +560,13 @@ vector<std::complex<double> >
 
 template<>
 template<>
-vector<std::complex<double> >& 
-vector<std::complex<double> >
-::operator /=(const std::complex<double>& alpha)
+vector<complex_double>& 
+vector<complex_double>
+::operator /=(const complex_double& alpha)
 {
   const int incx = 1;
   const int n = static_cast<int>(this->m_len);
-  const std::complex<double> alpha_inv = 1.0/alpha;
+  const complex_double alpha_inv = 1.0/alpha;
   zscal_(&n, &alpha_inv, this->m_data, &incx);
   return *this;
 }
@@ -546,9 +584,48 @@ vector<float>
 {
   vector<float> y(*this);
   const int inc = 1;
-  const int n = static_cast<int>(r.m_len);
+  const int n = static_cast<int>(y.m_len);
   const float alpha = 1.0f;
-  sscal_(&n, &alpha, r.m_data, &incx);
+  saxpy_(&n, &alpha, x.m_data, &inc, y.m_data, &inc);
+}
+
+
+template<>
+vector<double> 
+vector<double>
+::operator  +(const vector<double>& x) const
+{
+  vector<double> y(*this);
+  const int inc = 1;
+  const int n = static_cast<int>(y.m_len);
+  const double alpha = 1.0;
+  daxpy_(&n, &alpha, x.m_data, &inc, y.m_data, &inc);
+}
+
+
+template<>
+vector<complex_float> 
+vector<complex_float>
+::operator  +(const vector<complex_float>& x) const
+{
+  vector<complex_float> y(*this);
+  const int inc = 1;
+  const int n = static_cast<int>(y.m_len);
+  const complex_float alpha(1.0f, 0.0f);
+  caxpy_(&n, &alpha, x.m_data, &inc, y.m_data, &inc);
+}
+
+
+template<>
+vector<complex_double> 
+vector<complex_double>
+::operator  +(const vector<complex_double>& x) const
+{
+  vector<complex_double> y(*this);
+  const int inc = 1;
+  const int n = static_cast<int>(y.m_len);
+  const complex_double alpha(1.0, 0.0);
+  zaxpy_(&n, &alpha, x.m_data, &inc, y.m_data, &inc);
 }
 
 
