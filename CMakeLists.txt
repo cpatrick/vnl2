@@ -13,8 +13,12 @@ if( NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY )
 endif()
 set( CMAKE_MODULE_PATH "${vnl2_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH} )
 
-#include(CheckIncludeFileCXX)
-#check_include_file_cxx("complex" HAS_STD_COMPLEX)
+include_directories(src)
 
 add_subdirectory(src)
+
+include(CTest)
+if( BUILD_TESTING )
+  add_subdirectory(tests)
+endif( BUILD_TESTING )
 
